@@ -1,26 +1,4 @@
-import os
-
-def readSector(drive, sectorNo):
-    with open(drive, 'rb') as rS:
-        rS.seek(sectorNo * 512)
-        return rS.read(512)
-    
-def getHex(str):
-    return str[2:].zfill(2)
-
-def littleEndian(arr):
-    arr = arr[::-1]
-    res = ""
-    for i in range(len(arr)):
-        res += getHex(hex(arr[i]))
-    return res
-
-def hex2dec(hex_str):
-    try:
-        return int(hex_str, 16)
-    except ValueError:
-        print("Invalid hexadecimal input:", hex_str)
-        return None 
+from header import *
 
 def read_bootSector(drive):
     bootSector = readSector(drive, 0)
@@ -41,14 +19,6 @@ def read_bootSector(drive):
     print("----------------------------------------------------\n\n")
     readRDET(drive, Sc, Sb, Sf, Nf, firstClusterRDET)
 
-def hex2string(str):
-    res = ""
-    for i in range(len(str)):
-        if(str[i] == 0x00 or str[i] == 0xFF): 
-            continue
-        res += chr(str[i])
-    return res
-
 info = []
         
 def readRDET(drive, Sc, Sb, Sf, Nf, firstClusterRDET):
@@ -57,9 +27,12 @@ def readRDET(drive, Sc, Sb, Sf, Nf, firstClusterRDET):
     startSec = (cluster - 2) * Sc + Sb + Sf * Nf
     for i in range(Sc):
         sector = readSector(drive, startSec + i)
+        # 16 entries per sector
         for t in range(16):
             entryArr = []
+            # An entry has size of 32 bytes
             for k in range(32):
+                # entryArr is an array of integers values
                 entryArr.append(sector[32 * t + k])
             if(entryArr[0] == 0xE5 or entryArr[0] == 0x00): 
                 continue
@@ -76,8 +49,7 @@ def readRDET(drive, Sc, Sb, Sf, Nf, firstClusterRDET):
                 elif(entryArr[0xB] == 32): 
                     attribute = "Hidden"
                 else:   
-                    attribute = "ReadOnly"
-                
+                    attribute = "ReadOnly"               
                 size = hex2dec(littleEndian(entryArr[0xC : 0xC + 4]))
                 startCluster = hex2dec(littleEndian(entryArr[0x14 : 0x14 + 2])) + hex2dec(littleEndian(entryArr[0x1A : 0x1A + 2]))
                 expansion = hex2string(entryArr[8 : 11])
