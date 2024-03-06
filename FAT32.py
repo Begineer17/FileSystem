@@ -50,7 +50,7 @@ def readRDET(drive, Sc, Sb, Sf, Nf, firstClusterRDET):
                     attribute = "Hidden"
                 else:   
                     attribute = "ReadOnly"               
-                size = hex2dec(littleEndian(entryArr[0xC : 0xC + 4]))
+                size = hex2dec(littleEndian(entryArr[0x1C : 0x1C + 4]))
                 startCluster = hex2dec(littleEndian(entryArr[0x14 : 0x14 + 2])) + hex2dec(littleEndian(entryArr[0x1A : 0x1A + 2]))
                 expansion = hex2string(entryArr[8 : 11])
                 if(name == ""):
