@@ -80,12 +80,12 @@ def printContent(drive, startCluster, size, Sc, Sb, Sf, Nf, bytesPerSector):
     clusterSize = 512 * Sc
     currentCluster = startCluster
     remainingBytes = size
+    content = ""
     
     while remainingBytes > 0:
         sector = readSector(drive, (currentCluster - 2) * Sc + Sb + Sf * Nf)
         bytesToRead = min(remainingBytes, clusterSize)
-        content = sector[:bytesToRead]
-        print(bytes(content).decode("utf-8", errors="ignore"), end="")
+        content += bytes(sector[:bytesToRead]).decode("utf-8", errors="ignore")
         remainingBytes -= bytesToRead
         fatOffset = currentCluster + (currentCluster // 2)
         fatSector = readSector(drive, Sb + fatOffset // bytesPerSector)
@@ -95,7 +95,8 @@ def printContent(drive, startCluster, size, Sc, Sb, Sf, Nf, bytesPerSector):
             currentCluster = int.from_bytes(fatSector[(fatOffset % bytesPerSector) - 1:(fatOffset % bytesPerSector) + 1], byteorder='little') >> 4
         if currentCluster >= 0xFF8:
             break
-
+    
+    print(content)
 
 def readSDET(drive, Sc, Sb, Sf, Nf, firstClusterRDET, bytesPerSector):
     name = input("File/Directory To Open: ")
