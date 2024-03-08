@@ -17,11 +17,11 @@ def read_bootSector(drive):
     print("First Cluster Of RDET: ", firstClusterRDET, '\n')
     print("Number Of FAT Tables: ", Nf, '\n')
     print("----------------------------------------------------\n\n")
-    readRDET(drive, Sc, Sb, Sf, Nf, firstClusterRDET)
+    readRDET(drive, Sc, Sb, Sf, Nf, firstClusterRDET, bytesPerSector)
 
 info = []
         
-def readRDET(drive, Sc, Sb, Sf, Nf, firstClusterRDET):
+def readRDET(drive, Sc, Sb, Sf, Nf, firstClusterRDET, bytesPerSector):
     name = ""
     cluster = firstClusterRDET
     startSec = (cluster - 2) * Sc + Sb + Sf * Nf
@@ -71,12 +71,33 @@ def readRDET(drive, Sc, Sb, Sf, Nf, firstClusterRDET):
         print('\n')
         
     while(True):
-        readSDET(drive, Sc, Sb, Sf, Nf, firstClusterRDET)
+        readSDET(drive, Sc, Sb, Sf, Nf, firstClusterRDET, bytesPerSector)
         answer = input("Input 0 to exit, 1 to continue: ")
         print('\n')
         if(answer == 0): return
 
-def readSDET(drive, Sc, Sb, Sf, Nf, firstClusterRDET):
+def printContent(drive, startCluster, size, Sc, Sb, Sf, Nf, bytesPerSector):
+    clusterSize = 512 * Sc
+    currentCluster = startCluster
+    remainingBytes = size
+    
+    while remainingBytes > 0:
+        sector = readSector(drive, (currentCluster - 2) * Sc + Sb + Sf * Nf)
+        bytesToRead = min(remainingBytes, clusterSize)
+        content = sector[:bytesToRead]
+        print(bytes(content).decode("utf-8", errors="ignore"), end="")
+        remainingBytes -= bytesToRead
+        fatOffset = currentCluster + (currentCluster // 2)
+        fatSector = readSector(drive, Sb + fatOffset // bytesPerSector)
+        if currentCluster % 2 == 0:
+            currentCluster = int.from_bytes(fatSector[(fatOffset % bytesPerSector):(fatOffset % bytesPerSector) + 2], byteorder='little') & 0xFFF
+        else:
+            currentCluster = int.from_bytes(fatSector[(fatOffset % bytesPerSector) - 1:(fatOffset % bytesPerSector) + 1], byteorder='little') >> 4
+        if currentCluster >= 0xFF8:
+            break
+
+
+def readSDET(drive, Sc, Sb, Sf, Nf, firstClusterRDET, bytesPerSector):
     name = input("File/Directory To Open: ")
     index = -1
     for i in range(len(info)):
@@ -85,10 +106,13 @@ def readSDET(drive, Sc, Sb, Sf, Nf, firstClusterRDET):
             break
     if (index == -1):
         print("File/Directory Doesn't Exist!!!")
-    # elif(info[index][1] == "Archive" and info[index][4] == "TXT"):
-    #     printContent()
-    elif(info[index][1] == "Directory"):
-        readRDET(drive, Sc, Sb, Sf, Nf, info[index][3])
+    elif info[index][1] == "Archive" and info[index][4].lower() == "txt":
+        startCluster = info[index][3]
+        size = info[index][2]
+        printContent(drive, startCluster, size, Sc, Sb, Sf, Nf, bytesPerSector)
+
+#    elif(info[index][1] == "Directory"):
+#        readRDET(drive, Sc, Sb, Sf, Nf, firstClusterRDET, bytesPerSector)
     else:
         print("Please Use Approriate App To Open.")
         return
