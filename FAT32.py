@@ -1,14 +1,15 @@
 from header import *
 
+# read Boot sector of a specific drive
 def read_bootSector(drive):
     bootSector = readSector(drive, 0)
     bytesPerSector = 512
-    FAT_type = bootSector[0x52 : 0x52+8]
+    FAT_type = bootSector[0x52 : 0x52+8] # from offset 0x52 read 8 bytes
     Sc = bootSector[0xD]
-    Sb = hex2dec(getHex(hex((bootSector[0xF]))) + getHex(hex(bootSector[0xE])))
-    Sf = hex2dec(getHex(hex((bootSector[0x27]))) + getHex(hex(bootSector[0x26])) + getHex(hex((bootSector[0x25]))) + getHex(hex(bootSector[0x24])))
-    Nf = bootSector[0x10]
-    firstClusterRDET = hex2dec(getHex(hex((bootSector[0x2F]))) + getHex(hex(bootSector[0x2E])) +getHex(hex((bootSector[0x2D]))) + getHex(hex(bootSector[0x2C])))
+    Sb = hex2dec(getHex(hex((bootSector[0xF]))) + getHex(hex(bootSector[0xE]))) # from offset 0xE read 2 bytes
+    Sf = hex2dec(getHex(hex((bootSector[0x27]))) + getHex(hex(bootSector[0x26])) + getHex(hex((bootSector[0x25]))) + getHex(hex(bootSector[0x24]))) # from offset 0x24 read 4 bytes
+    Nf = bootSector[0x10] # read offset 0x10
+    firstClusterRDET = hex2dec(getHex(hex((bootSector[0x2F]))) + getHex(hex(bootSector[0x2E])) + getHex(hex((bootSector[0x2D]))) + getHex(hex(bootSector[0x2C]))) # from offset 0x2D read 3 bytes
     print("FAT Type: ", FAT_type, "\n") 
     print("Bytes Per Sector: ", bytesPerSector, '\n')
     print("Sectors Per Cluster: ", Sc, '\n')
@@ -19,14 +20,15 @@ def read_bootSector(drive):
     print("----------------------------------------------------\n\n")
     readRDET(drive, Sc, Sb, Sf, Nf, firstClusterRDET, bytesPerSector)
 
-info = []
-        
+info = [] # array to store informations of a file/directory in the drive
+
+# read RDET of the drive
 def readRDET(drive, Sc, Sb, Sf, Nf, firstClusterRDET, bytesPerSector):
-    name = ""
+    name = "" 
     cluster = firstClusterRDET
     startSec = (cluster - 2) * Sc + Sb + Sf * Nf
     for i in range(Sc):
-        sector = readSector(drive, startSec + i)
+        sector = readSector(drive, startSec + i) # iterate and read through every sectors in 1 cluster
         # 16 entries per sector
         for t in range(16):
             entryArr = []
@@ -50,11 +52,11 @@ def readRDET(drive, Sc, Sb, Sf, Nf, firstClusterRDET, bytesPerSector):
                     attribute = "Hidden"
                 else:   
                     attribute = "ReadOnly"               
-                size = hex2dec(littleEndian(entryArr[0x1C : 0x1C + 4]))
-                startCluster = hex2dec(littleEndian(entryArr[0x14 : 0x14 + 2])) + hex2dec(littleEndian(entryArr[0x1A : 0x1A + 2]))
-                expansion = hex2string(entryArr[8 : 11])
+                size = hex2dec(littleEndian(entryArr[0x1C : 0x1C + 4])) # from offset 0x1C read 4 bytes
+                startCluster = hex2dec(littleEndian(entryArr[0x14 : 0x14 + 2])) + hex2dec(littleEndian(entryArr[0x1A : 0x1A + 2])) # from offset 0x14 read 2 bytes, from offset 0x1A read 2 bytes
+                expansion = hex2string(entryArr[8 : 11]) # from offset 0x08 read 3 bytes
                 if(name == ""):
-                    name = hex2string(entryArr[0 : 8])
+                    name = hex2string(entryArr[0 : 8]) # from offset 0x00 read 8 bytes
                     if(expansion != "   "): 
                         name = name.strip()
                         name += '.' + expansion                
@@ -63,13 +65,14 @@ def readRDET(drive, Sc, Sb, Sf, Nf, firstClusterRDET, bytesPerSector):
                 info.append(item)
                 name = ""
             else:
-                name = hex2string(entryArr[1 : 1 + 0xA]) + hex2string(entryArr[0xE : 0xE + 0xC]) + hex2string(entryArr[0x1C : 0x1C + 4]) + name
+                name = hex2string(entryArr[1 : 1 + 0xA]) + hex2string(entryArr[0xE : 0xE + 0xC]) + hex2string(entryArr[0x1C : 0x1C + 4]) + name # read file/directory name from subentries
     
-
+    # display info of the current drive
     for i in range(len(info)):
         print("Name: ", info[i][0], ", Attribute: ", info[i][1], ", Size: ", info[i][2], ", Starting Cluster: ", info[i][3])
         print('\n')
-        
+
+    # Access file/directory of the current drive
     while(True):
         readSDET(drive, Sc, Sb, Sf, Nf, firstClusterRDET, bytesPerSector)
         answer = input("Input 0 to exit, 1 to continue: ")
