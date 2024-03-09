@@ -1,8 +1,10 @@
+# read specific sector from the disk
 def readSector(drive, sectorNo):
     with open(drive, 'rb') as rS:
         rS.seek(sectorNo * 512)
         return rS.read(512)
-    
+
+# ex: "'0x7A  '" -> "7A"
 def getHex(str):
     return str[2:].zfill(2)
 
@@ -14,6 +16,7 @@ def littleEndian(arr):
         res += getHex(hex(arr[i]))
     return res
 
+# return Decimal value of a string of Hexadecimal
 def hex2dec(hex_str):
     try:
         return int(hex_str, 16)
