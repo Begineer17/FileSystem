@@ -7,13 +7,15 @@ def read_bootSector(drive):
     FAT_type = bootSector[0x52 : 0x52+8] # from offset 0x52 read 8 bytes
     Sc = bootSector[0xD]
     Sb = hex2dec(getHex(hex((bootSector[0xF]))) + getHex(hex(bootSector[0xE]))) # from offset 0xE read 2 bytes
-    Sf = hex2dec(getHex(hex((bootSector[0x27]))) + getHex(hex(bootSector[0x26])) + getHex(hex((bootSector[0x25]))) + getHex(hex(bootSector[0x24]))) # from offset 0x24 read 4 bytes
+    Sf = hex2dec(getHex(hex((bootSector[0x27]))) + getHex(hex(bootSector[0x26]))
+                 + getHex(hex((bootSector[0x25]))) + getHex(hex(bootSector[0x24]))) # from offset 0x24 read 4 bytes
     Nf = bootSector[0x10] # read offset 0x10
-    firstClusterRDET = hex2dec(getHex(hex((bootSector[0x2F]))) + getHex(hex(bootSector[0x2E])) + getHex(hex((bootSector[0x2D]))) + getHex(hex(bootSector[0x2C]))) # from offset 0x2D read 3 bytes
+    firstClusterRDET = hex2dec(getHex(hex((bootSector[0x2F]))) + getHex(hex(bootSector[0x2E]))
+                               + getHex(hex((bootSector[0x2D]))) + getHex(hex(bootSector[0x2C]))) # from offset 0x2D read 3 bytes
     print("FAT Type: ", FAT_type, "\n") 
     print("Bytes Per Sector: ", bytesPerSector, '\n')
     print("Sectors Per Cluster: ", Sc, '\n')
-    print("Number Of Sectors Before Boot Sector: ", Sb, '\n')
+    print("Number Of Sectors Before FAT Table: ", Sb, '\n')
     print("Sectors Per FAT Table: ", Sf, '\n')
     print("First Cluster Of RDET: ", firstClusterRDET, '\n')
     print("Number Of FAT Tables: ", Nf, '\n')
