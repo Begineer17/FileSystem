@@ -111,9 +111,8 @@ def readSDET(drive, Sc, Sb, Sf, Nf, firstClusterRDET, bytesPerSector):
         startCluster = info[index][3]
         size = info[index][2]
         printContent(drive, startCluster, size, Sc, Sb, Sf, Nf, bytesPerSector)
-
-#    elif(info[index][1] == "Directory"):
-#        readRDET(drive, Sc, Sb, Sf, Nf, firstClusterRDET, bytesPerSector)
+    elif(info[index][1] == "Directory"):
+        readRDET(drive, Sc, Sb, Sf, Nf, info[index][3], bytesPerSector)
     else:
         print("Please Use Approriate App To Open.")
         return
