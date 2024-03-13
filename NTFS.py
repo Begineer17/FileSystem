@@ -1,5 +1,8 @@
 from header import *
 
+# CHANGE TO APPRORIATE DRIVE OF YOUR DEVICE!!!
+drive = "\\\\.\\E:"
+
 def get_attribute_type(val):
     if val == 16: return "$STANDARD_INFORMATION"
     elif val == 32: return "$ATTRIBUTE_LIST"
@@ -95,6 +98,6 @@ def readMFT(drive, startClusterMFT, Sc):
         print("Name: ", info[i][2])
         print("Attribute: ", info[i][1], ", Directory" if info[i][0] == True else "")
 
-readSector("\\\\.\\E:", 0)
+readVBR(drive)
     
 
