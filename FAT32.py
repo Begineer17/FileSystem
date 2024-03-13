@@ -1,5 +1,8 @@
 from header import *
 
+# CHANGE TO APPROPRIATE DRIVE OF YOUR DEVICE!!!
+drive = "\\\\.\\D:"
+
 # read Boot sector of a specific drive
 def read_bootSector(drive):
     bootSector = readSector(drive, 0)
@@ -124,4 +127,4 @@ def readSDET(drive, Sc, Sb, Sf, Nf, firstClusterRDET, bytesPerSector):
     
     print('\n')
 
-read_bootSector("\\\\.\\D:")
+read_bootSector(drive)
